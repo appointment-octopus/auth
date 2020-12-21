@@ -1,39 +1,34 @@
 package api_tests
 
 import (
-	"github.com/appointment-octopus/auth/core/authentication"
-	"github.com/appointment-octopus/auth/routers"
 	"github.com/appointment-octopus/auth/services"
+	"github.com/appointment-octopus/auth/routers"
 	"github.com/appointment-octopus/auth/settings"
+	"github.com/appointment-octopus/auth/core/authentication"
 	"fmt"
 	"github.com/codegangsta/negroni"
-	"github.com/stretchr/testify/assert"
-	. "gopkg.in/check.v1"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"github.com/stretchr/testify/suite"
 	"testing"
 )
 
-func Test(t *testing.T) {
-	TestingT(t)
-}
-
-type MiddlewaresTestSuite struct{}
-
-var _ = Suite(&MiddlewaresTestSuite{})
-var t *testing.T
 var token string
 var server *negroni.Negroni
 
-func (s *MiddlewaresTestSuite) SetUpSuite(c *C) {
+type MiddlewaresTestSuite struct {
+	suite.Suite
+}
+
+func (suite *MiddlewaresTestSuite) SetupSuite() {
 	os.Setenv("GO_ENV", "tests")
 	settings.Init()
 }
 
-func (s *MiddlewaresTestSuite) SetUpTest(c *C) {
+func (suite *MiddlewaresTestSuite) SetupTest() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	assert.NotNil(t, authBackend)
+	suite.NotNil(authBackend)
 	token, _ = authBackend.GenerateToken("1234")
 
 	router := routers.InitRoutes()
@@ -41,7 +36,7 @@ func (s *MiddlewaresTestSuite) SetUpTest(c *C) {
 	server.UseHandler(router)
 }
 
-func (s *MiddlewaresTestSuite) TestRequireTokenAuthentication(c *C) {
+func (suite *MiddlewaresTestSuite) TestRequireTokenAuthentication() {
 	resource := "/test/hello"
 
 	response := httptest.NewRecorder()
@@ -49,10 +44,10 @@ func (s *MiddlewaresTestSuite) TestRequireTokenAuthentication(c *C) {
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token))
 	server.ServeHTTP(response, request)
 
-	assert.Equal(t, response.Code, http.StatusOK)
+	suite.Equal(response.Code, http.StatusOK)
 }
 
-func (s *MiddlewaresTestSuite) TestRequireTokenAuthenticationInvalidToken(c *C) {
+func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationInvalidToken() {
 	resource := "/test/hello"
 
 	response := httptest.NewRecorder()
@@ -60,10 +55,10 @@ func (s *MiddlewaresTestSuite) TestRequireTokenAuthenticationInvalidToken(c *C) 
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", "token"))
 	server.ServeHTTP(response, request)
 
-	assert.Equal(t, response.Code, http.StatusUnauthorized)
+	suite.Equal(response.Code, http.StatusUnauthorized)
 }
 
-func (s *MiddlewaresTestSuite) TestRequireTokenAuthenticationEmptyToken(c *C) {
+func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationEmptyToken() {
 	resource := "/test/hello"
 
 	response := httptest.NewRecorder()
@@ -71,20 +66,20 @@ func (s *MiddlewaresTestSuite) TestRequireTokenAuthenticationEmptyToken(c *C) {
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", ""))
 	server.ServeHTTP(response, request)
 
-	assert.Equal(t, response.Code, http.StatusUnauthorized)
+	suite.Equal(response.Code, http.StatusUnauthorized)
 }
 
-func (s *MiddlewaresTestSuite) TestRequireTokenAuthenticationWithoutToken(c *C) {
+func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationWithoutToken() {
 	resource := "/test/hello"
 
 	response := httptest.NewRecorder()
 	request, _ := http.NewRequest("GET", resource, nil)
 	server.ServeHTTP(response, request)
 
-	assert.Equal(t, response.Code, http.StatusUnauthorized)
+	suite.Equal(response.Code, http.StatusUnauthorized)
 }
 
-func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationAfterLogout(c *C) {
+func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationAfterLogout() {
 	resource := "/test/hello"
 
 	requestLogout, _ := http.NewRequest("GET", resource, nil)
@@ -96,5 +91,9 @@ func (suite *MiddlewaresTestSuite) TestRequireTokenAuthenticationAfterLogout(c *
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token))
 	server.ServeHTTP(response, request)
 
-	assert.Equal(t, response.Code, http.StatusUnauthorized)
+	suite.Equal(response.Code, http.StatusUnauthorized)
+}
+
+func TestAuthenticationBackendTestSuite(t *testing.T) {
+	suite.Run(t, new(MiddlewaresTestSuite))
 }

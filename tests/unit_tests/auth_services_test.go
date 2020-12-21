@@ -4,101 +4,74 @@ import (
 	"github.com/appointment-octopus/auth/services"
 	"github.com/appointment-octopus/auth/services/models"
 	"github.com/appointment-octopus/auth/settings"
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
-	. "gopkg.in/check.v1"
 	"net/http"
 	"os"
 	"testing"
-)
+	"github.com/stretchr/testify/suite")
 
-func Test(t *testing.T) {
-	TestingT(t)
+type AuthenticationServicesTestSuite struct {
+	suite.Suite
 }
 
-type AuthenticationServicesTestSuite struct{}
-
-var _ = Suite(&AuthenticationServicesTestSuite{})
-var t *testing.T
-
-func (s *AuthenticationServicesTestSuite) SetUpSuite(c *C) {
+func (suite *AuthenticationServicesTestSuite) SetupSuite() {
 	os.Setenv("GO_ENV", "tests")
 	settings.Init()
 }
 
-func (suite *AuthenticationServicesTestSuite) TestLogin(c *C) {
+func (suite *AuthenticationServicesTestSuite) TestLogin() {
 	user := models.User{
 		Username: "haku",
 		Password: "testing",
 	}
 	response, token := services.Login(&user)
-	assert.Equal(t, http.StatusOK, response)
-	assert.NotEmpty(t, token)
+	suite.Equal(http.StatusOK, response)
+	suite.NotEmpty(token)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectPassword(c *C) {
+func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectPassword() {
 	user := models.User{
 		Username: "haku",
 		Password: "Password",
 	}
 	response, token := services.Login(&user)
-	assert.Equal(t, http.StatusUnauthorized, response)
-	assert.Empty(t, token)
+	suite.Equal(http.StatusUnauthorized, response)
+	suite.Empty(token)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectUsername(c *C) {
+func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectUsername() {
 	user := models.User{
 		Username: "Username",
 		Password: "testing",
 	}
 	response, token := services.Login(&user)
-	assert.Equal(t, http.StatusUnauthorized, response)
-	assert.Empty(t, token)
+	suite.Equal(http.StatusUnauthorized, response)
+	suite.Empty(token)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestLoginEmptyCredentials(c *C) {
+func (suite *AuthenticationServicesTestSuite) TestLoginEmptyCredentials() {
 	user := models.User{
 		Username: "",
 		Password: "",
 	}
+	
 	response, token := services.Login(&user)
-	assert.Equal(t, http.StatusUnauthorized, response)
-	assert.Empty(t, token)
+
+
+	suite.Equal(http.StatusUnauthorized, response)
+	suite.Empty(token)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestRefreshToken(c *C) {
+func (suite *AuthenticationServicesTestSuite) TestRefreshToken() {
 	user := models.User{
 		Username: "haku",
 		Password: "testing",
 	}
-	authBackend := authentication.InitJWTAuthenticationBackend()
-	tokenString, err := authBackend.GenerateToken(user.UUID)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return authBackend.PublicKey, nil
-	})
-	assert.Nil(t, err)
 
-	newToken := services.RefreshToken(token)
-	assert.NotEmpty(t, newToken)
+	newToken := services.RefreshToken(&user)
+	suite.NotEmpty(newToken)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestRefreshTokenInvalidToken(c *C) {
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	newToken := services.RefreshToken(token)
-	assert.Empty(t, newToken)
-}
 
-func (suite *AuthenticationServicesTestSuite) TestLogout(c *C) {
-	user := models.User{
-		Username: "haku",
-		Password: "testing",
-	}
-	authBackend := auth.InitJWTAuthenticationBackend()
-	tokenString, err := authentication.GenerateToken(user.UUID)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return authBackend.PublicKey, nil
-	})
-
-	err = services.Logout(tokenString, token)
-	assert.Nil(t, err)
+func TestAuthenticationServicesTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthenticationServicesTestSuite))
 }

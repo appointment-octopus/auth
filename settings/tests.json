@@ -1,5 +1,5 @@
 {
-  "PrivateKeyPath": "/home/vagrant/go/src/api.jwt.auth/settings/keys/private_key",
-  "PublicKeyPath": "/home/vagrant/go/src/api.jwt.auth/settings/keys/public_key.pub",
+  "PrivateKeyPath": "/home/guilherme/appointment-octopus/auth/settings/keys/private_key",
+  "PublicKeyPath": "/home/guilherme/appointment-octopus/auth/settings/keys/public_key.pub",
   "JWTExpirationDelta": 72
 }

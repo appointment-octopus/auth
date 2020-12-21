@@ -6,102 +6,100 @@ import (
 	"github.com/appointment-octopus/auth/services/models"
 	"github.com/appointment-octopus/auth/settings"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
-	. "gopkg.in/check.v1"
 	"os"
 	"testing"
+	"github.com/stretchr/testify/suite"
 )
 
-func Test(t *testing.T) {
-	TestingT(t)
+type AuthenticationBackendTestSuite struct {
+	suite.Suite
 }
 
-type AuthenticationBackendTestSuite struct{}
-
-var _ = Suite(&AuthenticationBackendTestSuite{})
-var t *testing.T
-
-func (s *AuthenticationBackendTestSuite) SetUpSuite(c *C) {
+func (suite *AuthenticationBackendTestSuite) SetupSuite() {
 	os.Setenv("GO_ENV", "tests")
 	settings.Init()
 }
 
-func (suite *AuthenticationBackendTestSuite) TestInitJWTAuthenticationBackend(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestInitJWTAuthenticationBackend() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	c.Assert(authBackend, NotNil)
-	c.Assert(authBackend.PublicKey, NotNil)
+	suite.NotNil(authBackend)
+	suite.NotNil(authBackend.PublicKey)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestGenerateToken(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestGenerateToken() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	tokenString, err := authBackend.GenerateToken("1234")
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, tokenString)
+	suite.Nil(err)
+	suite.NotEmpty(tokenString)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
 	})
 
-	assert.Nil(t, err)
-	assert.True(t, token.Valid)
+	suite.Nil(err)
+	suite.True(token.Valid)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestAuthenticate(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestAuthenticate() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := &models.User{
 		Username: "haku",
 		Password: "testing",
 	}
-	c.Assert(authBackend.Authenticate(user), Equals, true)
+	suite.Equal(authBackend.Authenticate(user), true)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectPass(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectPass() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := models.User{
 		Username: "haku",
 		Password: "Password",
 	}
-	c.Assert(authBackend.Authenticate(&user), Equals, false)
+	suite.Equal(authBackend.Authenticate(&user), false)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectUsername(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectUsername() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := &models.User{
 		Username: "Haku",
 		Password: "testing",
 	}
-	c.Assert(authBackend.Authenticate(user), Equals, false)
+	suite.Equal(authBackend.Authenticate(user), false)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestLogout(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestLogout() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	tokenString, err := authBackend.GenerateToken("1234")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
 	})
 	err = authBackend.Logout(tokenString, token)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
 	redisConn := redis.Connect()
 	redisValue, err := redisConn.GetValue(tokenString)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, redisValue)
+	suite.Nil(err)
+	suite.NotEmpty(redisValue)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestIsInBlacklist(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestIsInBlacklist() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	tokenString, err := authBackend.GenerateToken("1234")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
 	})
 	err = authBackend.Logout(tokenString, token)
-	assert.Nil(t, err)
+	suite.Nil(err)
 
-	assert.True(t, authBackend.IsInBlacklist(tokenString))
+	suite.True(authBackend.IsInBlacklist(tokenString))
 }
 
-func (suite *AuthenticationBackendTestSuite) TestIsNotInBlacklist(c *C) {
+func (suite *AuthenticationBackendTestSuite) TestIsNotInBlacklist() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	assert.False(t, authBackend.IsInBlacklist("1234"))
+	suite.False(authBackend.IsInBlacklist("1234"))
+}
+
+func TestAuthenticationBackendTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthenticationBackendTestSuite))
 }
