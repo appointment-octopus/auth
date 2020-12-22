@@ -8,6 +8,11 @@ import (
 
 func SetAuthenticationRoutes(router *mux.Router) *mux.Router {
     router.HandleFunc(
+        "/signup",
+        controllers.SignUp,
+    ).Methods("POST")
+
+    router.HandleFunc(
         "/token-auth",
         controllers.Login,
     ).Methods("POST")

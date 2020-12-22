@@ -12,4 +12,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
+	gorm.io/driver/postgres v1.0.5
+	gorm.io/gorm v1.20.8
 )

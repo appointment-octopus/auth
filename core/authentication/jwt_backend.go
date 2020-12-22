@@ -1,7 +1,7 @@
 package authentication
 
 import (
-    "github.com/appointment-octopus/auth/core/redis"
+    "github.com/appointment-octopus/auth/core/db"
     "github.com/appointment-octopus/auth/services/models"
     "github.com/appointment-octopus/auth/settings"
     "bufio"
@@ -56,7 +56,7 @@ func (backend *JWTAuthenticationBackend) GenerateToken(userUUID string) (string,
 
 func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
     hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testing"), 10)
-
+    
     testUser := models.User{
         UUID:     uuid.New().String(),
         Username: "haku",
@@ -69,22 +69,22 @@ func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
 func (backend *JWTAuthenticationBackend) getTokenRemainingValidity(timestamp interface{}) int {
     if validity, ok := timestamp.(float64); ok {
         tm := time.Unix(int64(validity), 0)
-        remainer := tm.Sub(time.Now())
-        if remainer > 0 {
-            return int(remainer.Seconds() + expireOffset)
+        remainder := tm.Sub(time.Now())
+        if remainder > 0 {
+            return int(remainder.Seconds() + expireOffset)
         }
     }
     return expireOffset
 }
 
 func (backend *JWTAuthenticationBackend) Logout(tokenString string, token *jwt.Token) error {
-    redisConn := redis.Connect()
-    return redisConn.SetValue(tokenString, tokenString, backend.getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"]))
+    redisConn := db.RedisConnect()
+    return redisConn.RedisSetValue(tokenString, []byte(tokenString), backend.getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"]))
 }
 
 func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
-    redisConn := redis.Connect()
-    redisToken, _ := redisConn.GetValue(token)
+    redisConn := db.RedisConnect()
+    redisToken, _ := redisConn.RedisGetValue(token)
 
     if redisToken == nil {
         return false

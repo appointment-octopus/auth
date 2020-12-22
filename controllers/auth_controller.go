@@ -7,22 +7,32 @@ import (
  "net/http"
 )
 
+func decodeUser(r *http.Request) *models.User {
+  requestUser := new(models.User)
+  decoder := json.NewDecoder(r.Body)
+  decoder.Decode(&requestUser)
+  return requestUser
+}
+
+func SignUp(w http.ResponseWriter, r *http.Request) {
+  requestUser := decodeUser(r)
+  responseStatus := services.SignUp(requestUser)
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(responseStatus)
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
- requestUser := new(models.User)
- decoder := json.NewDecoder(r.Body)
- decoder.Decode(&requestUser)
-responseStatus, token := services.Login(requestUser)
- w.Header().Set("Content-Type", "application/json")
- w.WriteHeader(responseStatus)
- w.Write(token)
+  requestUser := decodeUser(r)
+  responseStatus, token := services.Login(requestUser)
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(responseStatus)
+  w.Write(token)
 }
 
 func RefreshToken(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
- requestUser := new(models.User)
- decoder := json.NewDecoder(r.Body)
- decoder.Decode(&requestUser)
-w.Header().Set("Content-Type", "application/json")
- w.Write(services.RefreshToken(requestUser))
+  requestUser := decodeUser(r)
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(services.RefreshToken(requestUser))
 }
 
 func Logout(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

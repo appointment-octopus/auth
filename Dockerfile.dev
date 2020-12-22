@@ -1,0 +1,10 @@
+FROM golang:1.15.6
+
+WORKDIR /auth
+
+COPY ./go.mod .
+COPY ./go.sum .
+
+RUN go mod download
+
+COPY . .

@@ -7,10 +7,19 @@ import (
  jwt "github.com/dgrijalva/jwt-go"
  "github.com/dgrijalva/jwt-go/request"
  "net/http"
+ "log"
 )
 
 type TokenAuthentication struct {
 	Token string `json:"token" form:"token"`
+}
+
+func SignUp(requestUser *models.User) (int) {
+  _, err := requestUser.CreateUser(); if err != nil {
+    log.Fatal(err)
+    return http.StatusInternalServerError
+  }
+  return http.StatusOK
 }
 
 func Login(requestUser *models.User) (int, []byte) {

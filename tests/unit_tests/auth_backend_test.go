@@ -2,7 +2,7 @@ package unit_tests
 
 import (
 	"github.com/appointment-octopus/auth/core/authentication"
-	"github.com/appointment-octopus/auth/core/redis"
+	"github.com/appointment-octopus/auth/core/db"
 	"github.com/appointment-octopus/auth/services/models"
 	"github.com/appointment-octopus/auth/settings"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -77,8 +77,8 @@ func (suite *AuthenticationBackendTestSuite) TestLogout() {
 	err = authBackend.Logout(tokenString, token)
 	suite.Nil(err)
 
-	redisConn := redis.Connect()
-	redisValue, err := redisConn.GetValue(tokenString)
+	redisConn := db.RedisConnect()
+	redisValue, err := redisConn.RedisGetValue(tokenString)
 	suite.Nil(err)
 	suite.NotEmpty(redisValue)
 }
