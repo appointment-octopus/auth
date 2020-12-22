@@ -25,16 +25,15 @@ func (user *User) CreateUser() (*User, error) {
 
 func (user *User) FindUser() (*User, error) {
 	pgConn := database.PostgresConnect()
-	redisConn := database.RedisConnect()
 
-	userFound, err := redisConn.RedisGetValue(user.Username); if err != nil {
+	userFound, err := database.RedisGetValue(user.Username); if err != nil {
 		log.Println("searching in postgres")
 		var err error
 		err = pgConn.Debug().Where(&User{Username: user.Username}).Find(&user).Error; if err != nil {
 			return user, err
 		}
 		userBytes, _ := json.Marshal(user)
-		redisConn.RedisSetValue(user.Username, userBytes)
+		database.RedisSetValue(user.Username, userBytes)
 		return user, nil
 	}
 

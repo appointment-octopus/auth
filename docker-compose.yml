@@ -10,7 +10,7 @@ services:
     ports: 
       - 80:80
     networks: 
-      - prod
+      - auth-network
     depends_on:
       - auth-api1
       - auth-api2

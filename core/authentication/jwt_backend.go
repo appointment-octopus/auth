@@ -9,6 +9,7 @@ import (
     "crypto/rsa"
     "crypto/x509"
     "encoding/pem"
+    "encoding/json"
     jwt "github.com/dgrijalva/jwt-go"
     "golang.org/x/crypto/bcrypt"
     "os"
@@ -78,13 +79,13 @@ func (backend *JWTAuthenticationBackend) getTokenRemainingValidity(timestamp int
 }
 
 func (backend *JWTAuthenticationBackend) Logout(tokenString string, token *jwt.Token) error {
-    redisConn := db.RedisConnect()
-    return redisConn.RedisSetValue(tokenString, []byte(tokenString), backend.getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"]))
+    tokenBytes, _ := json.Marshal(token)
+
+    return db.RedisSetValue(tokenString, tokenBytes, backend.getTokenRemainingValidity(token.Claims.(jwt.MapClaims)["exp"]))
 }
 
 func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
-    redisConn := db.RedisConnect()
-    redisToken, _ := redisConn.RedisGetValue(token)
+    redisToken, _ := db.RedisGetValue(token)
 
     if redisToken == nil {
         return false

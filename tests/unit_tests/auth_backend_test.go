@@ -75,10 +75,10 @@ func (suite *AuthenticationBackendTestSuite) TestLogout() {
 		return authBackend.PublicKey, nil
 	})
 	err = authBackend.Logout(tokenString, token)
+
 	suite.Nil(err)
 
-	redisConn := db.RedisConnect()
-	redisValue, err := redisConn.RedisGetValue(tokenString)
+	redisValue, err := db.RedisGetValue(tokenString)
 	suite.Nil(err)
 	suite.NotEmpty(redisValue)
 }
