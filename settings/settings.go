@@ -1,16 +1,16 @@
 package settings
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"github.com/appointment-octopus/auth/utils"
+	"strings"
 )
 
-var environments = map[string]string{
-	"production":    "settings/prod.json",
-	"preproduction": "settings/pre.json",
-	"tests":         "../../settings/tests.json",
+var expirationDelta = map[string]int{
+	"production": 72,
+	"preproduction": 36,
+	"tests": 1,
 }
 
 type Settings struct {
@@ -31,15 +31,33 @@ func Init() {
 	LoadSettingsByEnv(env)
 }
 
-func LoadSettingsByEnv(env string) {
-	content, err := ioutil.ReadFile(environments[env])
-	if err != nil {
-		fmt.Println("Error while reading config file", err)
+func checkFileExists(filepath string) {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		panic(err)
 	}
-	settings = Settings{}
-	jsonErr := json.Unmarshal(content, &settings)
-	if jsonErr != nil {
-		fmt.Println("Error while parsing config file", jsonErr)
+}
+
+func buildPath(path string, env string) string {
+	rootDir := utils.RootDir()
+
+	if env == "tests" {
+		rootDir = strings.Split(rootDir, "/tests")[0]
+	}
+
+	var sb strings.Builder
+	sb.WriteString(rootDir)
+	sb.WriteString("/")
+	sb.WriteString(path)
+	fmt.Println(sb.String())
+	checkFileExists(sb.String())
+	return sb.String()
+}
+
+func LoadSettingsByEnv(env string) {
+	settings = Settings{
+		JWTExpirationDelta: expirationDelta[env],
+		PrivateKeyPath: buildPath("settings/keys/private_key", env),
+		PublicKeyPath: buildPath("settings/keys/public_key.pub", env),
 	}
 }
 

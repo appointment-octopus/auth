@@ -2,10 +2,20 @@ package db
 
 import (
 	"github.com/gomodule/redigo/redis"
+	"os"
+	"fmt"
 )
 
+func getRedisUrl() string {
+	if os.Getenv("REDIS_HOST") != "" {
+		return fmt.Sprintf("%s:6379", os.Getenv("REDIS_HOST"))
+	}
+	return "localhost:6379"
+}
+
 func RedisConnect() redis.Conn {
-	conn, err := redis.Dial("tcp", ":6379")
+	redisUrl := getRedisUrl()
+	conn, err := redis.Dial("tcp", redisUrl)
 	HandleError(err)
 	return conn
 }

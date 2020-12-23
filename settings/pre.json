@@ -1,5 +1,0 @@
-{
-  "PrivateKeyPath": "/home/guilherme/appointment-octopus/auth/settings/keys/private_key",
-  "PublicKeyPath": "/home/guilherme/appointment-octopus/auth/settings/keys/public_key.pub",
-  "JWTExpirationDelta": 72
-}

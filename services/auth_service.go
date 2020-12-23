@@ -23,17 +23,17 @@ func SignUp(requestUser *models.User) (int) {
 }
 
 func Login(requestUser *models.User) (int, []byte) {
- authBackend := authentication.InitJWTAuthenticationBackend()
-if authBackend.Authenticate(requestUser) {
-  token, err := authBackend.GenerateToken(requestUser.UUID)
-  if err != nil {
-   return http.StatusInternalServerError, []byte("")
-  } else {
-   response, _ := json.Marshal(TokenAuthentication{token})
-   return http.StatusOK, response
+  authBackend := authentication.InitJWTAuthenticationBackend()
+  if authBackend.Authenticate(requestUser) {
+    token, err := authBackend.GenerateToken(requestUser.UUID)
+    if err != nil {
+      return http.StatusInternalServerError, []byte("")
+    } else {
+      response, _ := json.Marshal(TokenAuthentication{token})
+      return http.StatusOK, response
+    }
   }
- }
-return http.StatusUnauthorized, []byte("")
+  return http.StatusUnauthorized, []byte("")
 }
 
 func RefreshToken(requestUser *models.User) []byte {

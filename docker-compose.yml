@@ -3,12 +3,12 @@ version: "3.8"
 services:
   nginx:
     build:
-      dockerfile: ./docker/nginx.Dockerfile
+      dockerfile: ./Dockerfile.nginx
       context: .
-    image: raelamorim/nginx
     container_name: nginx
     ports: 
       - 80:80
+      - 443:443
     networks: 
       - auth-network
     depends_on:
@@ -27,7 +27,7 @@ services:
       - auth-db
       - redis
     volumes:
-      - $PWD:/auth
+      - .:/auth
     ports:
       - 5000:5000
     env_file:
@@ -46,9 +46,9 @@ services:
       - auth-db
       - redis
     volumes:
-      - $PWD:/auth
+      - .:/auth
     ports:
-      - 5000:5000
+      - 5001:5000
     env_file:
       - .env
     entrypoint: ["/bin/bash", "./entrypoints/build_app.sh"]
@@ -65,9 +65,9 @@ services:
       - auth-db
       - redis
     volumes:
-      - $PWD:/auth
+      - .:/auth
     ports:
-      - 5000:5000
+      - 5002:5000
     env_file:
       - .env
     entrypoint: ["/bin/bash", "./entrypoints/build_app.sh"]
@@ -76,17 +76,19 @@ services:
 
   redis:
     image: redis
-    container_name: redis
+    container_name: ${REDIS_HOST}
     networks:
       - auth-network
     depends_on:
       - auth-db
-    expose:      
-      - '6379'
+    ports:
+      - 6379:6379
+    # expose:      
+    #   - 6379
 
   auth-db:
-    container_name: auth-db
-    image: postgres:12.0
+    container_name: ${POSTGRES_HOST}
+    image: postgres
     restart: on-failure
     env_file:
       - .env
@@ -97,7 +99,7 @@ services:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - auth-db-data:/var/lib/postgresql/data
-      - ./entrypoints/init_db.sh:/docker-entrypoint-initdb.d/
+      - ./entrypoints/db:/docker-entrypoint-initdb.d
     networks:
       - auth-network
   
