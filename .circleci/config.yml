@@ -20,14 +20,14 @@ jobs:
   build-and-test:
     machine:
       image: ubuntu-2004:202010-01
-      docker_layer_caching: true
+      # docker_layer_caching: true # this is a payed feature, lol
 
     steps:
       - checkout
 
       - run:
           name: Install Docker Compose
-          command: ./download_latest_docker-compose_release.sh
+          command: sudo bash download_latest_docker-compose_release.sh
       
       - run:
           name: Build
@@ -35,7 +35,7 @@ jobs:
 
       - run:
           name: Start containers in background
-          command: docker-compose up auth-api1 -d
+          command: docker-compose up -d auth-api1
 
       - run:
           name: Run tests
