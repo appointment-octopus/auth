@@ -7,6 +7,8 @@ import (
 
 func AutoMigration(){
 	db := db.PostgresConnect()
-	// defer db.Close()
-	db.AutoMigrate(models.User{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB")
+	if db.Migrator().HasTable(models.User{}) == false {
+		db.AutoMigrate(models.User{})
+	}
 }

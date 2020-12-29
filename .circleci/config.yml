@@ -1,0 +1,45 @@
+version: 2.1
+orbs:
+  shellcheck: circleci/shellcheck@2.2.2
+  codecov: codecov/codecov@1.0.2
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - shellcheck/check
+      - build-and-test:
+          context:
+              - project
+          requires:
+              - shellcheck/check
+          # filters:
+          #   branches:
+          #     only: master
+jobs:
+  build:
+    machine:
+      docker_layer_caching: true
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Docker Compose
+          command: ./download_latest_docker-compose_release.sh
+      
+      - run:
+          name: Build
+          command: docker-compose build auth-db redis auth-api1
+
+      - run:
+          name: Start containers in background
+          command: docker-compose up auth-api1 -d
+
+      - run:
+          name: Run tests
+          command: docker-compose exec auth-api1 bash entrypoints/test_app.sh
+
+      - codecov/upload:
+          file: coverage.txt
+          token: $CODECOV_TOKEN
