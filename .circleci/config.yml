@@ -2,6 +2,7 @@ version: 2.1
 orbs:
   shellcheck: circleci/shellcheck@2.2.2
   codecov: codecov/codecov@1.0.2
+  sonarcloud: sonarsource/sonarcloud@1.0.1
 
 workflows:
   version: 2
@@ -28,6 +29,46 @@ jobs:
       - run:
           name: Install Docker Compose
           command: sudo bash download_latest_docker-compose_release.sh
+      # - restore_cache:
+      #     name: Restore Docker Compose cache
+      #     key: docker-compose-cache
+
+      # - run:
+      #     name: Install Docker Compose reporter
+      #     command: |
+      #       if [[ ! -x /usr/local/bin/docker-compose ]]
+      #       then
+      #           sudo bash download_latest_docker-compose_release.sh
+      #       fi
+
+      # - save_cache:
+      #     name: Save Docker Compose cache
+      #     key: docker-compose-cache
+      #     paths:
+      #       - /usr/local/bin/docker-compose
+
+############################################################
+          
+      - restore_cache:
+          name: Restore Code Climate cache
+          key: codeclimate-cache
+
+      - run:
+          name: Install Code Climate reporter
+          command: |
+            if [[ ! -x cc-test-reporter ]]
+            then
+                curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+                chmod +x ./cc-test-reporter
+            fi
+
+      - save_cache:
+          name: Save Code Climate cache
+          key: codeclimate-cache
+          paths:
+            - ./cc-test-reporter
+
+############################################################
       
       - run:
           name: Build
@@ -44,3 +85,18 @@ jobs:
       - codecov/upload:
           file: coverage.txt
           token: $CODECOV_TOKEN
+
+      - sonarcloud/scan
+
+      # - run:
+      #     name:  Upload coverage to codeclimate
+      #     command: |
+      #       curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      #       chmod +x ./cc-test-reporter
+      #       ./cc-test-reporter format-coverage -t Cover -o codeclimate.auth.json coverage.txt
+      #       ./cc-test-reporter upload-coverage -i codeclimate.auth.json
+
+      - run:
+          name: Report code coverage to Code Climate
+          command: |
+            ./cc-test-reporter after-build -t Cover --exit-code $? || true
