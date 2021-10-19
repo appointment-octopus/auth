@@ -1,13 +1,14 @@
 package unit_tests
 
 import (
+	"os"
+	"testing"
+
 	"github.com/appointment-octopus/auth/core/authentication"
 	"github.com/appointment-octopus/auth/core/db"
 	"github.com/appointment-octopus/auth/services/models"
 	"github.com/appointment-octopus/auth/settings"
 	jwt "github.com/dgrijalva/jwt-go"
-	"os"
-	"testing"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -44,7 +45,7 @@ func (suite *AuthenticationBackendTestSuite) TestGenerateToken() {
 func (suite *AuthenticationBackendTestSuite) TestAuthenticate() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := &models.User{
-		Username: "haku",
+		Email:    "haku@email.com",
 		Password: "testing",
 	}
 	suite.Equal(authBackend.Authenticate(user), true)
@@ -53,16 +54,16 @@ func (suite *AuthenticationBackendTestSuite) TestAuthenticate() {
 func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectPass() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := models.User{
-		Username: "haku",
+		Email:    "haku@email.com",
 		Password: "Password",
 	}
 	suite.Equal(authBackend.Authenticate(&user), false)
 }
 
-func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectUsername() {
+func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectEmail() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	user := &models.User{
-		Username: "Haku",
+		Email:    "Haku@email.com",
 		Password: "testing",
 	}
 	suite.Equal(authBackend.Authenticate(user), false)

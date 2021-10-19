@@ -1,13 +1,15 @@
 package unit_tests
 
 import (
-	"github.com/appointment-octopus/auth/services"
-	"github.com/appointment-octopus/auth/services/models"
-	"github.com/appointment-octopus/auth/settings"
 	"net/http"
 	"os"
 	"testing"
-	"github.com/stretchr/testify/suite")
+
+	"github.com/appointment-octopus/auth/services"
+	"github.com/appointment-octopus/auth/services/models"
+	"github.com/appointment-octopus/auth/settings"
+	"github.com/stretchr/testify/suite"
+)
 
 type AuthenticationServicesTestSuite struct {
 	suite.Suite
@@ -20,7 +22,7 @@ func (suite *AuthenticationServicesTestSuite) SetupSuite() {
 
 func (suite *AuthenticationServicesTestSuite) TestLogin() {
 	user := models.User{
-		Username: "haku",
+		Email:    "haku@email.com",
 		Password: "testing",
 	}
 	response, token := services.Login(&user)
@@ -30,7 +32,7 @@ func (suite *AuthenticationServicesTestSuite) TestLogin() {
 
 func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectPassword() {
 	user := models.User{
-		Username: "haku",
+		Email:    "haku@email.com",
 		Password: "Password",
 	}
 	response, token := services.Login(&user)
@@ -38,9 +40,9 @@ func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectPassword() {
 	suite.Empty(token)
 }
 
-func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectUsername() {
+func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectEmail() {
 	user := models.User{
-		Username: "Username",
+		Email:    "Email",
 		Password: "testing",
 	}
 	response, token := services.Login(&user)
@@ -50,12 +52,11 @@ func (suite *AuthenticationServicesTestSuite) TestLoginIncorrectUsername() {
 
 func (suite *AuthenticationServicesTestSuite) TestLoginEmptyCredentials() {
 	user := models.User{
-		Username: "",
+		Email:    "",
 		Password: "",
 	}
-	
-	response, token := services.Login(&user)
 
+	response, token := services.Login(&user)
 
 	suite.Equal(http.StatusUnauthorized, response)
 	suite.Empty(token)
@@ -63,14 +64,13 @@ func (suite *AuthenticationServicesTestSuite) TestLoginEmptyCredentials() {
 
 func (suite *AuthenticationServicesTestSuite) TestRefreshToken() {
 	user := models.User{
-		Username: "haku",
+		Email:    "haku@email.com",
 		Password: "testing",
 	}
 
 	newToken := services.RefreshToken(&user)
 	suite.NotEmpty(newToken)
 }
-
 
 func TestAuthenticationServicesTestSuite(t *testing.T) {
 	suite.Run(t, new(AuthenticationServicesTestSuite))
