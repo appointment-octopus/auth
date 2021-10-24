@@ -72,7 +72,7 @@ jobs:
       
       - run:
           name: Build
-          command: docker-compose build auth-db redis auth-api1
+          command: docker-compose build database redis auth-api1
 
       - run:
           name: Start containers in background
