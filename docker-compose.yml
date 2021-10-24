@@ -5,26 +5,22 @@ services:
     build:
       dockerfile: ./Dockerfile.nginx
       context: .
-    container_name: nginx
     ports: 
       - 80:80
       - 443:443
-    networks: 
-      - auth-network
     depends_on:
       - auth-api1
       - auth-api2
       - auth-api3
       - redis
-      - auth-db
+      - database
 
   auth-api1:
-    container_name: auth-api1
     build:
       context: .
       dockerfile: Dockerfile.dev
     depends_on:
-      - auth-db
+      - database
       - redis
     volumes:
       - .:/auth
@@ -33,17 +29,15 @@ services:
     env_file:
       - .env
     entrypoint: ["/bin/bash", "./entrypoints/build_app.sh"]
-    networks:
-      - auth-network
+
 
   auth-api2:
-    container_name: auth-api2
     build:
       context: .
       dockerfile: Dockerfile.dev
     depends_on:
       - auth-api1
-      - auth-db
+      - database
       - redis
     volumes:
       - .:/auth
@@ -52,17 +46,15 @@ services:
     env_file:
       - .env
     entrypoint: ["/bin/bash", "./entrypoints/build_app.sh"]
-    networks:
-      - auth-network
+
 
   auth-api3:
-    container_name: auth-api3
     build:
       context: .
       dockerfile: Dockerfile.dev
     depends_on:
       - auth-api2
-      - auth-db
+      - database
       - redis
     volumes:
       - .:/auth
@@ -71,43 +63,28 @@ services:
     env_file:
       - .env
     entrypoint: ["/bin/bash", "./entrypoints/build_app.sh"]
-    networks:
-      - auth-network
+
 
   redis:
     image: redis
-    container_name: ${REDIS_HOST}
-    networks:
-      - auth-network
     depends_on:
-      - auth-db
+      - database
     ports:
       - 6379:6379
-    # expose:      
-    #   - 6379
 
-  auth-db:
-    container_name: ${POSTGRES_HOST}
+  database:
     image: postgres
     restart: on-failure
     env_file:
       - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
-      - auth-db-data:/var/lib/postgresql/data
-      - ./entrypoints/db:/docker-entrypoint-initdb.d
-    networks:
-      - auth-network
+      - database-data:/var/lib/postgresql/data
+
   
  
  
 volumes:
-  auth-db-data:
+  database-data:
 
-networks:
-  auth-network:
-    driver: bridge

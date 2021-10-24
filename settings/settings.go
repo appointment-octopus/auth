@@ -3,14 +3,15 @@ package settings
 import (
 	"fmt"
 	"os"
-	"github.com/appointment-octopus/auth/utils"
 	"strings"
+
+	"github.com/appointment-octopus/auth/utils"
 )
 
 var expirationDelta = map[string]int{
-	"production": 72,
+	"production":    72,
 	"preproduction": 36,
-	"tests": 1,
+	"tests":         1,
 }
 
 type Settings struct {
@@ -48,7 +49,6 @@ func buildPath(path string, env string) string {
 	sb.WriteString(rootDir)
 	sb.WriteString("/")
 	sb.WriteString(path)
-	fmt.Println(sb.String())
 	checkFileExists(sb.String())
 	return sb.String()
 }
@@ -56,8 +56,8 @@ func buildPath(path string, env string) string {
 func LoadSettingsByEnv(env string) {
 	settings = Settings{
 		JWTExpirationDelta: expirationDelta[env],
-		PrivateKeyPath: buildPath("settings/keys/private_key", env),
-		PublicKeyPath: buildPath("settings/keys/public_key.pub", env),
+		PrivateKeyPath:     buildPath("settings/keys/private_key", env),
+		PublicKeyPath:      buildPath("settings/keys/public_key.pub", env),
 	}
 }
 

@@ -1,17 +1,18 @@
 package api_tests
 
 import (
-	"github.com/appointment-octopus/auth/services"
-	"github.com/appointment-octopus/auth/routers"
-	"github.com/appointment-octopus/auth/settings"
-	"github.com/appointment-octopus/auth/core/authentication"
 	"fmt"
-	"github.com/codegangsta/negroni"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"github.com/stretchr/testify/suite"
 	"testing"
+
+	"github.com/appointment-octopus/auth/core/authentication"
+	"github.com/appointment-octopus/auth/routers"
+	"github.com/appointment-octopus/auth/services"
+	"github.com/appointment-octopus/auth/settings"
+	"github.com/codegangsta/negroni"
+	"github.com/stretchr/testify/suite"
 )
 
 var token string
@@ -29,7 +30,7 @@ func (suite *MiddlewaresTestSuite) SetupSuite() {
 func (suite *MiddlewaresTestSuite) SetupTest() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 	suite.NotNil(authBackend)
-	token, _ = authBackend.GenerateToken("1234")
+	token, _ = authBackend.GenerateToken(1234)
 
 	router := routers.InitRoutes()
 	server = negroni.Classic()

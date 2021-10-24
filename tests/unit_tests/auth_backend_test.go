@@ -29,7 +29,7 @@ func (suite *AuthenticationBackendTestSuite) TestInitJWTAuthenticationBackend() 
 
 func (suite *AuthenticationBackendTestSuite) TestGenerateToken() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	tokenString, err := authBackend.GenerateToken("1234")
+	tokenString, err := authBackend.GenerateToken(1234)
 
 	suite.Nil(err)
 	suite.NotEmpty(tokenString)
@@ -71,7 +71,7 @@ func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectEmail() {
 
 func (suite *AuthenticationBackendTestSuite) TestLogout() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	tokenString, err := authBackend.GenerateToken("1234")
+	tokenString, err := authBackend.GenerateToken(1234)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
 	})
@@ -86,7 +86,7 @@ func (suite *AuthenticationBackendTestSuite) TestLogout() {
 
 func (suite *AuthenticationBackendTestSuite) TestIsInBlacklist() {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	tokenString, err := authBackend.GenerateToken("1234")
+	tokenString, err := authBackend.GenerateToken(1234)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
 	})

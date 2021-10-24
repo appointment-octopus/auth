@@ -58,7 +58,13 @@ func (backend *JWTAuthenticationBackend) GenerateToken(idUser int) (string, erro
 func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testing"), 10)
 
-	return bcrypt.CompareHashAndPassword([]byte(string(hashedPassword)), []byte(user.Password)) == nil
+	testUser := models.User{
+		IdUser:   123,
+		Email:    "haku@email.com",
+		Password: string(hashedPassword),
+	}
+
+	return user.Email == testUser.Email && bcrypt.CompareHashAndPassword([]byte(testUser.Password), []byte(user.Password)) == nil
 }
 
 func (backend *JWTAuthenticationBackend) getTokenRemainingValidity(timestamp interface{}) int {
